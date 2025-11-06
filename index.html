@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>WlynPay - Mirip GoPay UI</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg1:#071427;
+    --bg2:#0b2236;
+    --card-grad-1: linear-gradient(135deg,#08396b 0%,#0b6aa6 48%,#063b7a 100%);
+    --glass: rgba(255,255,255,0.04);
+    --muted: rgba(255,255,255,0.7);
+    --accent: #00c1a3;
+    --green: #1bd58f;
+    --card-radius:22px;
+    --width:360px;
+  }
+
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;
+    font-family:'Poppins',system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;
+    background:linear-gradient(180deg,var(--bg1),var(--bg2));
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:#fff;
+    padding:20px;
+  }
+
+  .phone {
+    width:var(--width);
+    max-width:100%;
+    border-radius:28px;
+    padding:18px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), transparent);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.6), inset 0 -6px 18px rgba(0,0,0,0.25);
+  }
+
+  /* Top status bar (avatar + help) */
+  .topbar{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:12px;
+  }
+  .avatar {
+    width:40px;height:40px;border-radius:50%;
+    background:linear-gradient(145deg,#2b577f,#13507a);
+    display:flex;align-items:center;justify-content:center;font-weight:700;
+    box-shadow:0 4px 10px rgba(2,9,23,0.6);
+  }
+  .status-right{margin-left:auto;display:flex;gap:8px;align-items:center}
+  .help{
+    width:34px;height:34px;border-radius:9px;background:rgba(255,255,255,0.03);
+    display:flex;align-items:center;justify-content:center;font-weight:700;color:#dbeeff;
+  }
+
+  /* Card Saldo */
+  .card {
+    background: var(--card-grad-1);
+    border-radius: var(--card-radius);
+    padding:18px;
+    color:#fff;
+    box-shadow: 0 12px 30px rgba(4,20,40,0.6);
+    position:relative;
+    overflow:hidden;
+  }
+  .card .top {
+    display:flex;align-items:center;gap:12px;
+  }
+  .balance-title{font-size:13px;opacity:0.95}
+  .balance {
+    font-size:28px;font-weight:700;margin-top:6px;
+    letter-spacing:0.6px;
+  }
+  .coins{font-size:13px;opacity:0.9;margin-left:8px}
+  .card .actions{
+    display:flex;gap:10px;margin-top:14px;
+  }
+  .pill {
+    flex:1;
+    background:rgba(255,255,255,0.06);
+    padding:8px 10px;border-radius:12px;display:flex;justify-content:space-between;align-items:center;
+    min-width:0;
+  }
+  .btn-main {
+    display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:12px;
+    background:linear-gradient(180deg,#00b4d8,#00a3c2);border:none;color:white;font-weight:600;cursor:pointer;
+    box-shadow: 0 6px 16px rgba(0,180,216,0.12);
+  }
+  .badge-free{
+    background:rgba(0,0,0,0.18);
+    padding:4px 8px;border-radius:999px;font-size:12px;color:#c6ffd9;margin-left:8px;border:1px solid rgba(255,255,255,0.06)
+  }
+
+  /* chips under card */
+  .chips{display:flex;gap:10px;margin-top:12px}
+  .chip{
+    background:rgba(255,255,255,0.03);padding:8px 12px;border-radius:12px;font-size:13px;
+    display:flex;align-items:center;gap:8px;color:rgba(255,255,255,0.9)
+  }
+
+  /* containers */
+  .panel{
+    margin-top:14px;
+    background:var(--glass);
+    border-radius:16px;
+    padding:14px;
+    box-shadow: 0 8px 18px rgba(3,8,18,0.45);
+  }
+
+  /* Kirim & Terima */
+  .recipients {
+    display:flex;align-items:flex-start;justify-content:space-between;
+  }
+  .recipients .title{
+    display:flex;align-items:center;gap:8px;font-weight:600;
+  }
+  .seeall{
+    margin-left:auto;font-size:13px;background:transparent;border:none;color:var(--muted);cursor:pointer;
+  }
+
+  .contacts {
+    display:flex;gap:10px;margin-top:12px;overflow:auto;padding-bottom:6px;
+  }
+  .contact{
+    width:70px;flex:0 0 70px;text-align:center;
+  }
+  .contact .circle{
+    width:56px;height:56px;border-radius:50%;background:linear-gradient(180deg,#1f4d78,#16406a);
+    display:flex;align-items:center;justify-content:center;font-weight:700;color:white;margin:0 auto;
+    box-shadow:0 8px 14px rgba(3,9,23,0.6);
+    position:relative;
+  }
+  .contact .bank-badge{
+    position:absolute;right:-2px;bottom:-2px;background:#083b6a;padding:3px 6px;border-radius:10px;font-size:11px;
+    box-shadow:0 6px 10px rgba(1,9,20,0.45);
+  }
+  .contact .name{font-size:12px;margin-top:8px;opacity:0.95;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+  /* action icons row */
+  .actions-row{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
+  .action-card{
+    flex:1;min-width:72px;background:rgba(255,255,255,0.03);padding:10px;border-radius:12px;text-align:center;font-size:13px;
+    display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;
+  }
+  .action-card .icon{
+    width:40px;height:40px;border-radius:10px;background:linear-gradient(180deg,#0b3b5f,#073246);
+    display:flex;align-items:center;justify-content:center;font-weight:700;
+  }
+
+  /* Pembayaran */
+  .payment-grid{display:flex;gap:10px;margin-top:10px;flex-wrap:wrap}
+  .payment-item{
+    flex:1;min-width:120px;background:rgba(255,255,255,0.03);padding:12px;border-radius:12px;font-size:13px;text-align:left;
+    display:flex;align-items:center;gap:10px;
+  }
+
+  /* QR bottom button */
+  .floating-qr{
+    position:sticky;bottom:12px;margin-top:12px;display:flex;justify-content:center;
+  }
+  .qr-btn{
+    background:linear-gradient(180deg,#0ea5a2,#0b8d7f);border-radius:30px;padding:10px 26px;font-weight:700;border:none;
+    box-shadow:0 10px 26px rgba(6,30,40,0.6);cursor:pointer;
+  }
+
+  /* small utilities */
+  .muted{color:var(--muted);font-size:13px}
+  .small{font-size:12px;opacity:0.9}
+  .hidden{display:none}
+
+  /* Login page adjustments */
+  .login-card{
+    background:rgba(255,255,255,0.02);padding:16px;border-radius:14px;
+  }
+  input,select,button.input-btn{
+    width:100%;padding:12px;border-radius:10px;border:none;background:rgba(255,255,255,0.03);color:#fff;font-size:14px;
+    outline:none;margin-top:10px;
+  }
+  button.input-btn{background:linear-gradient(180deg,#00b4d8,#00a3c2);font-weight:700}
+
+  /* responsive small tweak */
+  @media (max-width:380px){
+    :root{--width:340px}
+  }
+
+</style>
+</head>
+<body>
+
+<div class="phone">
+
+  <!-- LOGIN -->
+  <div id="loginPage" class="">
+    <div class="topbar" style="margin-bottom:8px">
+      <div class="avatar">W</div>
+      <div style="line-height:1">
+        <div style="font-weight:600">WlynPay</div>
+        <div class="muted small">Masuk untuk menggunakan layanan</div>
+      </div>
+      <div class="status-right">
+        <div class="help">?</div>
+      </div>
+    </div>
+
+    <div class="login-card">
+      <input id="username" placeholder="Nama pengguna" value="wilyan">
+      <input id="password" placeholder="Kata sandi" type="password" value="1234">
+      <button class="input-btn" onclick="login()">Masuk</button>
+    </div>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div id="dashboard" class="hidden">
+
+    <!-- CARD SALDO -->
+    <div class="card" aria-hidden="false">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div class="balance-title">gopay-like • WlynPay</div>
+          <div class="balance">Rp<span id="saldo">0</span></div>
+          <div class="coins">Coins <span id="coins">18</span></div>
+        </div>
+        <div style="text-align:right">
+          <!-- small icons top right -->
+          <div style="display:flex;gap:8px;align-items:center;justify-content:flex-end">
+            <div style="font-size:12px;background:rgba(255,255,255,0.06);padding:6px;border-radius:8px">★</div>
+            <div style="font-size:12px;background:rgba(255,255,255,0.06);padding:6px;border-radius:8px">⚙</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <div class="pill">
+          <div style="display:flex;flex-direction:column;min-width:0">
+            <div class="small muted">Pinjam</div>
+            <div style="font-weight:700">Rp870.000</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end">
+            <div class="small muted">Tabungan</div>
+            <div style="font-weight:700">Rp2.064.500</div>
+          </div>
+        </div>
+
+      </div>
+
+      <div style="display:flex;gap:10px;margin-top:12px">
+        <button class="btn-main" onclick="goPage('topupPage')">⬆ Top up <span class="badge-free">Gratis</span></button>
+        <button class="btn-main" onclick="goPage('transferPage')">⬇ Tarik tunai <span class="badge-free">Gratis</span></button>
+      </div>
+
+      <div class="chips" role="list">
+        <div class="chip">Rp2.064.500 udah terpakai di Nov</div>
+        <div class="chip">Promo</div>
+      </div>
+
+    </div>
+
+    <!-- Kirim & Terima -->
+    <div class="panel">
+      <div class="recipients">
+        <div class="title">Kirim & terima</div>
+        <button class="seeall" onclick="alert('Lihat semua kontak')">Lihat semua ➜</button>
+      </div>
+
+      <div class="contacts" id="contactsList" aria-label="Kontak populer">
+        <!-- contacts inserted by JS -->
+      </div>
+
+      <div class="actions-row">
+        <div class="action-card" onclick="goPage('transferPage')">
+          <div class="icon">✈</div>
+          <div class="small">Transfer gratis</div>
+        </div>
+        <div class="action-card" onclick="alert('Minta fitur belum aktif')">
+          <div class="icon">🤝</div>
+          <div class="small">Minta</div>
+        </div>
+        <div class="action-card" onclick="alert('Split bill')">
+          <div class="icon">🧾</div>
+          <div class="small">Split bill</div>
+        </div>
+        <div class="action-card" onclick="alert('Hadiah')">
+          <div class="icon">🎁</div>
+          <div class="small">Hadiah</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pembayaran -->
+    <div class="panel" style="margin-top:12px">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div style="font-weight:600">Pembayaran</div>
+        <button class="seeall" onclick="alert('Lihat semua pembayaran')">Lihat semua ➜</button>
+      </div>
+
+      <div class="payment-grid">
+        <div class="payment-item">
+          <div style="width:44px;height:44;border-radius:10px;background:rgba(255,255,255,0.03);display:flex;align-items:center;justify-content:center">PLN</div>
+          <div>
+            <div style="font-weight:600">PLN Token</div>
+            <div class="small muted">Bayar listrik</div>
+          </div>
+        </div>
+
+        <div class="payment-item">
+          <div style="width:44px;height:44;border-radius:10px;background:rgba(255,255,255,0.03);display:flex;align-items:center;justify-content:center">BPJS</div>
+          <div>
+            <div style="font-weight:600">BPJS</div>
+            <div class="small muted">Cicilan & tagihan</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Floating QR button -->
+    <div class="floating-qr">
+      <button class="qr-btn" onclick="goPage('qrPage')">📷 QR</button>
+    </div>
+
+  </div>
+
+  <!-- TOP UP PAGE -->
+  <div id="topupPage" class="hidden">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+      <button class="seeall" onclick="goPage('dashboard')">⬅</button>
+      <div style="font-weight:600">Top Up Saldo</div>
+    </div>
+    <div class="panel">
+      <input id="topupAmount" placeholder="Masukkan jumlah (contoh: 10000)" type="number">
+      <button class="input-btn" style="margin-top:12px" onclick="topup()">Kirim</button>
+    </div>
+  </div>
+
+  <!-- TRANSFER PAGE -->
+  <div id="transferPage" class="hidden">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+      <button class="seeall" onclick="goPage('dashboard')">⬅</button>
+      <div style="font-weight:600">Transfer</div>
+    </div>
+    <div class="panel">
+      <select id="bankTujuan">
+        <option value="">Pilih Bank / E-Wallet</option>
+        <option value="BCA">Bank BCA</option>
+        <option value="Mandiri">Mandiri</option>
+        <option value="Seabank">SeaBank</option>
+        <option value="GoPay">GoPay</option>
+        <option value="OVO">OVO</option>
+        <option value="DANA">DANA</option>
+        <option value="ShopeePay">ShopeePay</option>
+      </select>
+      <input id="nomorRekening" placeholder="Nomor rekening / HP" oninput="cekPenerima()" />
+      <div id="namaOtomatis" class="hidden" style="margin-top:8px;padding:8px;border-radius:8px;background:rgba(0,255,136,0.06);color:#b9f7d2"></div>
+      <input id="transferAmount" placeholder="Nominal transfer" type="number" />
+      <button class="input-btn" style="margin-top:8px" onclick="transfer()">Kirim</button>
+    </div>
+  </div>
+
+  <!-- HISTORY PAGE -->
+  <div id="historyPage" class="hidden">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+      <button class="seeall" onclick="goPage('dashboard')">⬅</button>
+      <div style="font-weight:600">Riwayat Transaksi</div>
+    </div>
+    <div class="panel" id="output"></div>
+  </div>
+
+  <!-- QR PAGE -->
+  <div id="qrPage" class="hidden">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+      <button class="seeall" onclick="goPage('dashboard')">⬅</button>
+      <div style="font-weight:600">QR Payment</div>
+    </div>
+    <div class="panel" style="text-align:center">
+      <img src="https://api.qrserver.com/v1/create-qr-code/?data=WlynPay%20Payment&size=200x200" alt="QR" style="width:200px;height:200px;border-radius:8px">
+      <div class="small muted" style="margin-top:10px">Tunjukkan QR untuk pembayaran</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // initial state
+  let saldo = 140463; // angka awal, menyesuaikan dengan foto
+  let transaksi = [];
+  const user = { username: "wilyan", password: "1234" };
+
+  // daftar penerima simulasi
+  const daftarPenerima = [
+    { bank: "BCA", nomor: "08123456789", nama: "Anggi" , avatar: null },
+    { bank: "BCA", nomor: "08199887766", nama: "M.solehudin", avatar: null },
+    { bank: "ShopeePay", nomor: "082211223344", nama: "Yusriyah", avatar: null },
+    { bank: "BCA", nomor: "08551234567", nama: "Pujianti", avatar: null },
+    { bank: "GoPay", nomor: "0822334455", nama: "Lia", avatar: null },
+    { bank: "DANA", nomor: "0818080808", nama: "Dimas", avatar: null }
+  ];
+
+  // create contacts in "Kirim & Terima" to match the photo-like layout
+  function renderContacts(){
+    const container = document.getElementById('contactsList');
+    container.innerHTML = '';
+    // show first 5 popular
+    daftarPenerima.slice(0,5).forEach(d=>{
+      const wrap = document.createElement('div'); wrap.className='contact';
+      const circle = document.createElement('div'); circle.className='circle';
+      // initials
+      const initials = d.nama.split(' ').map(s=>s[0]).join('').slice(0,2).toUpperCase();
+      circle.textContent = initials;
+      // bank badge
+      const bbadge = document.createElement('div'); bbadge.className='bank-badge'; bbadge.textContent = d.bank==='BCA'?'BCA': d.bank==='GoPay'?'GP': d.bank==='DANA'?'DANA': d.bank;
+      circle.appendChild(bbadge);
+      const name = document.createElement('div'); name.className='name'; name.textContent = d.nama;
+      circle.onclick = ()=>{ document.getElementById('bankTujuan').value = d.bank; document.getElementById('nomorRekening').value = d.nomor; cekPenerima(); goPage('transferPage'); };
+      wrap.appendChild(circle);
+      wrap.appendChild(name);
+      container.appendChild(wrap);
+    });
+  }
+
+  function goPage(id){
+    // hide all direct children of .phone
+    document.querySelectorAll('.phone > div').forEach(e => e.classList.add('hidden'));
+    document.getElementById(id).classList.remove('hidden');
+    if(id === 'dashboard') updateSaldo();
+    if(id === 'historyPage') showHistory();
+    if(id === 'dashboard') renderContacts();
+  }
+
+  function login(){
+    const u = document.getElementById('username').value.trim();
+    const p = document.getElementById('password').value.trim();
+    if(u === user.username && p === user.password){
+      goPage('dashboard');
+    } else {
+      alert('Nama pengguna atau sandi salah!');
+    }
+  }
+
+  function updateSaldo(){
+    document.getElementById('saldo').innerText = saldo.toLocaleString('id-ID');
+    document.getElementById('coins').innerText = 18;
+  }
+
+  function topup(){
+    const amt = parseInt(document.getElementById('topupAmount').value);
+    if(isNaN(amt) || amt <= 0) return alert('Jumlah tidak valid!');
+    saldo += amt;
+    transaksi.push({type:'Top Up', desc:`Top Up Rp${amt.toLocaleString('id-ID')}`, time: new Date().toLocaleString()});
+    alert('Top up berhasil!');
+    document.getElementById('topupAmount').value = '';
+    goPage('dashboard');
+  }
+
+  function cekPenerima(){
+    const bank = document.getElementById('bankTujuan').value;
+    const no = document.getElementById('nomorRekening').value.trim();
+    const info = document.getElementById('namaOtomatis');
+    if(!bank || !no){ info.classList.add('hidden'); return; }
+    const found = daftarPenerima.find(d => d.bank === bank && d.nomor === no);
+    if(found){
+      info.textContent = `Penerima: ${found.nama}`;
+      info.classList.remove('hidden');
+    } else {
+      info.textContent = 'Penerima tidak ditemukan';
+      info.classList.remove('hidden');
+    }
+  }
+
+  function transfer(){
+    const bank = document.getElementById('bankTujuan').value;
+    const no = document.getElementById('nomorRekening').value.trim();
+    const jumlah = parseInt(document.getElementById('transferAmount').value);
+    const data = daftarPenerima.find(d => d.bank === bank && d.nomor === no);
+
+    if(!bank || !no || isNaN(jumlah) || jumlah <= 0) return alert('Isi semua data dengan benar!');
+    if(jumlah > saldo) return alert('Saldo tidak cukup!');
+    if(!data) return alert('Nomor rekening / HP tidak ditemukan!');
+
+    saldo -= jumlah;
+    transaksi.push({type:'Transfer', desc:`Transfer ke ${data.nama} (${bank}) Rp${jumlah.toLocaleString('id-ID')}`, time: new Date().toLocaleString()});
+    alert(`Transfer ke ${data.nama} berhasil!`);
+    document.getElementById('nomorRekening').value = '';
+    document.getElementById('transferAmount').value = '';
+    document.getElementById('bankTujuan').value = '';
+    document.getElementById('namaOtomatis').classList.add('hidden');
+    goPage('dashboard');
+  }
+
+  function showHistory(){
+    const out = document.getElementById('output');
+    if(transaksi.length === 0){
+      out.innerHTML = '<p class="muted">Belum ada transaksi.</p>';
+      return;
+    }
+    out.innerHTML = transaksi.map(t => {
+      if(typeof t === 'string') return `<div class="transaksi" style="padding:10px;border-radius:8px;background:rgba(255,255,255,0.02);margin-bottom:8px">${t}</div>`;
+      return `<div style="padding:10px;border-radius:8px;background:rgba(255,255,255,0.02);margin-bottom:8px">
+                <div style="font-weight:600">${t.type}</div>
+                <div class="small muted">${t.desc}</div>
+                <div class="small muted" style="margin-top:6px">${t.time}</div>
+              </div>`;
+    }).join('');
+  }
+
+  // initial render
+  updateSaldo();
+  renderContacts();
+  // start at login page (default), but you can comment the next line to auto-login
+  // goPage('dashboard');
+
+</script>
+</body>
+</html>
