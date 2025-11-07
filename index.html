@@ -3,516 +3,613 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>WlynPay - Mirip GoPay UI</title>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+<title>KantongPay • Final (TopUp + Rekening Otomatis)</title>
+
+<!-- Tailwind -->
+<script src="https://cdn.tailwindcss.com"></script>
+<!-- Phosphor icons -->
+<script src="https://unpkg.com/@phosphor-icons/web"></script>
+<!-- QR generator -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+
 <style>
   :root{
-    --bg1:#071427;
-    --bg2:#0b2236;
-    --card-grad-1: linear-gradient(135deg,#08396b 0%,#0b6aa6 48%,#063b7a 100%);
-    --glass: rgba(255,255,255,0.04);
-    --muted: rgba(255,255,255,0.7);
-    --accent: #00c1a3;
-    --green: #1bd58f;
-    --card-radius:22px;
-    --width:360px;
+    --brand:#0b8bff;
+    --brand-2:#0666d6;
+    --bg:#e9f6ff;
+    --admin-fee:2500;
   }
-
-  *{box-sizing:border-box}
-  html,body{height:100%}
-  body{
+  html,body { height:100%; }
+  body {
+    font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    background: linear-gradient(180deg,var(--bg),#ffffff);
     margin:0;
-    font-family:'Poppins',system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;
-    background:linear-gradient(180deg,var(--bg1),var(--bg2));
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    color:#fff;
-    padding:20px;
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
   }
+  .app { max-width:420px; margin:0 auto; min-height:100vh; position:relative; padding-bottom:110px; }
+  .card { background: linear-gradient(180deg,#fff,#fbfdff); border-radius:14px; box-shadow:0 8px 20px rgba(10,30,80,0.06); border:1px solid rgba(6,102,255,0.06); }
+  .btn-brand { background: linear-gradient(90deg,var(--brand),var(--brand-2)); color:white; }
+  .page { display:none; padding:18px; animation: pageIn .18s ease; }
+  .page.active { display:block; }
+  @keyframes pageIn { from {opacity:0; transform:translateY(6px);} to {opacity:1; transform:none;} }
 
-  .phone {
-    width:var(--width);
-    max-width:100%;
-    border-radius:28px;
-    padding:18px;
-    background: linear-gradient(180deg, rgba(255,255,255,0.02), transparent);
-    box-shadow: 0 12px 40px rgba(0,0,0,0.6), inset 0 -6px 18px rgba(0,0,0,0.25);
-  }
+  /* Bottom nav */
+  .bottom-nav { position:fixed; left:0; right:0; bottom:14px; display:flex; justify-content:center; z-index:80; }
+  .nav-card { width:92%; max-width:420px; background:linear-gradient(180deg,#fff,#f8fbff); border-radius:18px; box-shadow:0 10px 30px rgba(8,24,80,0.08); border:1px solid rgba(6,102,255,0.06); padding:8px; display:flex; gap:6px; justify-content:space-between; align-items:center; }
+  .nav-btn { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; padding:6px 4px; border-radius:10px; color:#234; }
+  .nav-btn.active { background: linear-gradient(180deg, rgba(11,139,255,0.08), rgba(6,102,214,0.06)); }
 
-  /* Top status bar (avatar + help) */
-  .topbar{
-    display:flex;
-    align-items:center;
-    gap:10px;
-    margin-bottom:12px;
-  }
-  .avatar {
-    width:40px;height:40px;border-radius:50%;
-    background:linear-gradient(145deg,#2b577f,#13507a);
-    display:flex;align-items:center;justify-content:center;font-weight:700;
-    box-shadow:0 4px 10px rgba(2,9,23,0.6);
-  }
-  .status-right{margin-left:auto;display:flex;gap:8px;align-items:center}
-  .help{
-    width:34px;height:34px;border-radius:9px;background:rgba(255,255,255,0.03);
-    display:flex;align-items:center;justify-content:center;font-weight:700;color:#dbeeff;
-  }
+  /* Modal blur / iOS style */
+  .modal-back { position:fixed; inset:0; display:none; align-items:center; justify-content:center; z-index:90; backdrop-filter: blur(6px); background: linear-gradient(180deg, rgba(2,6,23,0.28), rgba(2,6,23,0.36)); }
+  .modal-back.show { display:flex; }
+  .modal { width:92%; max-width:420px; border-radius:14px; padding:16px; background: linear-gradient(180deg, rgba(255,255,255,0.75), rgba(255,255,255,0.72)); border:1px solid rgba(255,255,255,0.12); box-shadow: 0 12px 40px rgba(3,10,40,0.25); }
 
-  /* Card Saldo */
-  .card {
-    background: var(--card-grad-1);
-    border-radius: var(--card-radius);
-    padding:18px;
-    color:#fff;
-    box-shadow: 0 12px 30px rgba(4,20,40,0.6);
-    position:relative;
-    overflow:hidden;
-  }
-  .card .top {
-    display:flex;align-items:center;gap:12px;
-  }
-  .balance-title{font-size:13px;opacity:0.95}
-  .balance {
-    font-size:28px;font-weight:700;margin-top:6px;
-    letter-spacing:0.6px;
-  }
-  .coins{font-size:13px;opacity:0.9;margin-left:8px}
-  .card .actions{
-    display:flex;gap:10px;margin-top:14px;
-  }
-  .pill {
-    flex:1;
-    background:rgba(255,255,255,0.06);
-    padding:8px 10px;border-radius:12px;display:flex;justify-content:space-between;align-items:center;
-    min-width:0;
-  }
-  .btn-main {
-    display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:12px;
-    background:linear-gradient(180deg,#00b4d8,#00a3c2);border:none;color:white;font-weight:600;cursor:pointer;
-    box-shadow: 0 6px 16px rgba(0,180,216,0.12);
-  }
-  .badge-free{
-    background:rgba(0,0,0,0.18);
-    padding:4px 8px;border-radius:999px;font-size:12px;color:#c6ffd9;margin-left:8px;border:1px solid rgba(255,255,255,0.06)
-  }
+  .pin-input { letter-spacing: 10px; font-size:20px; text-align:center; }
+  .muted { color:#64748b; }
+  .small { font-size:13px; }
 
-  /* chips under card */
-  .chips{display:flex;gap:10px;margin-top:12px}
-  .chip{
-    background:rgba(255,255,255,0.03);padding:8px 12px;border-radius:12px;font-size:13px;
-    display:flex;align-items:center;gap:8px;color:rgba(255,255,255,0.9)
+  @media (min-width:640px) {
+    .app { box-shadow: 0 12px 40px rgba(8,25,80,0.04); border-radius:16px; margin-top:18px; overflow:hidden; }
   }
-
-  /* containers */
-  .panel{
-    margin-top:14px;
-    background:var(--glass);
-    border-radius:16px;
-    padding:14px;
-    box-shadow: 0 8px 18px rgba(3,8,18,0.45);
-  }
-
-  /* Kirim & Terima */
-  .recipients {
-    display:flex;align-items:flex-start;justify-content:space-between;
-  }
-  .recipients .title{
-    display:flex;align-items:center;gap:8px;font-weight:600;
-  }
-  .seeall{
-    margin-left:auto;font-size:13px;background:transparent;border:none;color:var(--muted);cursor:pointer;
-  }
-
-  .contacts {
-    display:flex;gap:10px;margin-top:12px;overflow:auto;padding-bottom:6px;
-  }
-  .contact{
-    width:70px;flex:0 0 70px;text-align:center;
-  }
-  .contact .circle{
-    width:56px;height:56px;border-radius:50%;background:linear-gradient(180deg,#1f4d78,#16406a);
-    display:flex;align-items:center;justify-content:center;font-weight:700;color:white;margin:0 auto;
-    box-shadow:0 8px 14px rgba(3,9,23,0.6);
-    position:relative;
-  }
-  .contact .bank-badge{
-    position:absolute;right:-2px;bottom:-2px;background:#083b6a;padding:3px 6px;border-radius:10px;font-size:11px;
-    box-shadow:0 6px 10px rgba(1,9,20,0.45);
-  }
-  .contact .name{font-size:12px;margin-top:8px;opacity:0.95;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-
-  /* action icons row */
-  .actions-row{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
-  .action-card{
-    flex:1;min-width:72px;background:rgba(255,255,255,0.03);padding:10px;border-radius:12px;text-align:center;font-size:13px;
-    display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;
-  }
-  .action-card .icon{
-    width:40px;height:40px;border-radius:10px;background:linear-gradient(180deg,#0b3b5f,#073246);
-    display:flex;align-items:center;justify-content:center;font-weight:700;
-  }
-
-  /* Pembayaran */
-  .payment-grid{display:flex;gap:10px;margin-top:10px;flex-wrap:wrap}
-  .payment-item{
-    flex:1;min-width:120px;background:rgba(255,255,255,0.03);padding:12px;border-radius:12px;font-size:13px;text-align:left;
-    display:flex;align-items:center;gap:10px;
-  }
-
-  /* QR bottom button */
-  .floating-qr{
-    position:sticky;bottom:12px;margin-top:12px;display:flex;justify-content:center;
-  }
-  .qr-btn{
-    background:linear-gradient(180deg,#0ea5a2,#0b8d7f);border-radius:30px;padding:10px 26px;font-weight:700;border:none;
-    box-shadow:0 10px 26px rgba(6,30,40,0.6);cursor:pointer;
-  }
-
-  /* small utilities */
-  .muted{color:var(--muted);font-size:13px}
-  .small{font-size:12px;opacity:0.9}
-  .hidden{display:none}
-
-  /* Login page adjustments */
-  .login-card{
-    background:rgba(255,255,255,0.02);padding:16px;border-radius:14px;
-  }
-  input,select,button.input-btn{
-    width:100%;padding:12px;border-radius:10px;border:none;background:rgba(255,255,255,0.03);color:#fff;font-size:14px;
-    outline:none;margin-top:10px;
-  }
-  button.input-btn{background:linear-gradient(180deg,#00b4d8,#00a3c2);font-weight:700}
-
-  /* responsive small tweak */
-  @media (max-width:380px){
-    :root{--width:340px}
-  }
-
 </style>
 </head>
 <body>
+  <div class="app mx-auto">
 
-<div class="phone">
+    <!-- LOGIN -->
+    <section id="page-login" class="page active">
+      <div class="card p-5">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <div class="text-xl font-semibold">KantongPay</div>
+            <div class="text-xs muted">Masuk ke akun KantongPay</div>
+          </div>
+        </div>
 
-  <!-- LOGIN -->
-  <div id="loginPage" class="">
-    <div class="topbar" style="margin-bottom:8px">
-      <div class="avatar">W</div>
-      <div style="line-height:1">
-        <div style="font-weight:600">WlynPay</div>
-        <div class="muted small">Masuk untuk menggunakan layanan</div>
+        <div class="space-y-3">
+          <label class="text-xs muted">Email</label>
+          <input id="login-email" type="email" class="w-full p-3 rounded-lg border border-slate-200" placeholder="nama@contoh.com">
+          <label class="text-xs muted">Password</label>
+          <input id="login-pass" type="password" class="w-full p-3 rounded-lg border border-slate-200" placeholder="••••••">
+          <button id="btn-login" class="w-full mt-2 py-3 rounded-lg btn-brand">Masuk</button>
+        </div>
+
+        <div class="mt-4 text-center small muted">Belum punya akun? <button id="goto-register" class="text-[var(--brand)] font-medium">Daftar</button></div>
       </div>
-      <div class="status-right">
-        <div class="help">?</div>
+    </section>
+
+    <!-- REGISTER -->
+    <section id="page-register" class="page">
+      <div class="card p-5">
+        <div class="mb-3">
+          <div class="text-xl font-semibold">Daftar KantongPay</div>
+          <div class="text-xs muted">Buat akun & dapatkan nomor rekening otomatis</div>
+        </div>
+
+        <div class="space-y-3">
+          <label class="text-xs muted">Nama lengkap</label>
+          <input id="reg-name" class="w-full p-3 rounded-lg border border-slate-200" placeholder="Nama Anda">
+          <label class="text-xs muted">Email</label>
+          <input id="reg-email" type="email" class="w-full p-3 rounded-lg border border-slate-200" placeholder="nama@contoh.com">
+          <label class="text-xs muted">Password</label>
+          <input id="reg-pass" type="password" class="w-full p-3 rounded-lg border border-slate-200" placeholder="Minimal 6 karakter">
+          <label class="text-xs muted">PIN 6-digit</label>
+          <input id="reg-pin" type="password" inputmode="numeric" maxlength="6" class="w-full p-3 rounded-lg border border-slate-200 pin-input" placeholder="123456">
+          <button id="btn-register" class="w-full mt-2 py-3 rounded-lg border border-[var(--brand)] text-[var(--brand)]">Buat Akun</button>
+        </div>
+
+        <div class="mt-4 text-center small muted">Sudah punya akun? <button id="goto-login" class="text-[var(--brand)] font-medium">Masuk</button></div>
       </div>
-    </div>
+    </section>
 
-    <div class="login-card">
-      <input id="username" placeholder="Nama pengguna" value="wilyan">
-      <input id="password" placeholder="Kata sandi" type="password" value="1234">
-      <button class="input-btn" onclick="login()">Masuk</button>
-    </div>
-  </div>
-
-  <!-- DASHBOARD -->
-  <div id="dashboard" class="hidden">
-
-    <!-- CARD SALDO -->
-    <div class="card" aria-hidden="false">
-      <div style="display:flex;align-items:center;justify-content:space-between">
+    <!-- DASHBOARD -->
+    <section id="page-dashboard" class="page">
+      <div class="flex items-center justify-between mb-3">
         <div>
-          <div class="balance-title">gopay-like • WlynPay</div>
-          <div class="balance">Rp<span id="saldo">0</span></div>
-          <div class="coins">Coins <span id="coins">18</span></div>
+          <div class="text-lg font-semibold" id="hdr-welcome">Hello, User</div>
+          <div class="text-xs muted">KantongPay • Biru Cerah</div>
         </div>
-        <div style="text-align:right">
-          <!-- small icons top right -->
-          <div style="display:flex;gap:8px;align-items:center;justify-content:flex-end">
-            <div style="font-size:12px;background:rgba(255,255,255,0.06);padding:6px;border-radius:8px">★</div>
-            <div style="font-size:12px;background:rgba(255,255,255,0.06);padding:6px;border-radius:8px">⚙</div>
-          </div>
+        <div class="text-right">
+          <div class="text-xs muted">Saldo</div>
+          <div id="hdr-balance" class="text-lg font-semibold">Rp 0</div>
         </div>
       </div>
 
-      <div class="actions">
-        <div class="pill">
-          <div style="display:flex;flex-direction:column;min-width:0">
-            <div class="small muted">Pinjam</div>
-            <div style="font-weight:700">Rp870.000</div>
-          </div>
-          <div style="display:flex;flex-direction:column;align-items:flex-end">
-            <div class="small muted">Tabungan</div>
-            <div style="font-weight:700">Rp2.064.500</div>
-          </div>
-        </div>
+      <div class="card p-4 mb-3">
+        <div class="text-xs muted">Nomor Rekening</div>
+        <div id="acct-number" class="text-sm font-medium mb-2">-</div>
 
-      </div>
+        <div class="text-xs muted">Saldo KantongPay</div>
+        <div id="main-balance" class="text-2xl font-semibold mt-1">Rp 0</div>
 
-      <div style="display:flex;gap:10px;margin-top:12px">
-        <button class="btn-main" onclick="goPage('topupPage')">⬆ Top up <span class="badge-free">Gratis</span></button>
-        <button class="btn-main" onclick="goPage('transferPage')">⬇ Tarik tunai <span class="badge-free">Gratis</span></button>
-      </div>
-
-      <div class="chips" role="list">
-        <div class="chip">Rp2.064.500 udah terpakai di Nov</div>
-        <div class="chip">Promo</div>
-      </div>
-
-    </div>
-
-    <!-- Kirim & Terima -->
-    <div class="panel">
-      <div class="recipients">
-        <div class="title">Kirim & terima</div>
-        <button class="seeall" onclick="alert('Lihat semua kontak')">Lihat semua ➜</button>
-      </div>
-
-      <div class="contacts" id="contactsList" aria-label="Kontak populer">
-        <!-- contacts inserted by JS -->
-      </div>
-
-      <div class="actions-row">
-        <div class="action-card" onclick="goPage('transferPage')">
-          <div class="icon">✈</div>
-          <div class="small">Transfer gratis</div>
-        </div>
-        <div class="action-card" onclick="alert('Minta fitur belum aktif')">
-          <div class="icon">🤝</div>
-          <div class="small">Minta</div>
-        </div>
-        <div class="action-card" onclick="alert('Split bill')">
-          <div class="icon">🧾</div>
-          <div class="small">Split bill</div>
-        </div>
-        <div class="action-card" onclick="alert('Hadiah')">
-          <div class="icon">🎁</div>
-          <div class="small">Hadiah</div>
+        <div class="flex gap-3 mt-3">
+          <button id="open-topup" class="px-3 py-2 rounded-lg btn-brand">Top Up</button>
+          <button id="open-send" class="px-3 py-2 rounded-lg bg-white border border-[var(--brand)] text-[var(--brand)]">Kirim</button>
+          <button id="open-transfer" class="px-3 py-2 rounded-lg bg-white border border-slate-200 text-[var(--brand)]">Transfer Bank</button>
+          <button id="open-qris" class="px-3 py-2 rounded-lg bg-white border border-slate-200 text-[var(--brand)]">QRIS</button>
         </div>
       </div>
-    </div>
 
-    <!-- Pembayaran -->
-    <div class="panel" style="margin-top:12px">
-      <div style="display:flex;align-items:center;justify-content:space-between">
-        <div style="font-weight:600">Pembayaran</div>
-        <button class="seeall" onclick="alert('Lihat semua pembayaran')">Lihat semua ➜</button>
+      <div class="card p-3">
+        <div class="flex items-center justify-between mb-2">
+          <div class="font-medium">Transaksi Terakhir</div>
+          <div class="text-xs muted">10 terbaru</div>
+        </div>
+        <ul id="tx-list" class="space-y-2 text-sm muted">
+          <!-- injected -->
+        </ul>
+      </div>
+    </section>
+
+    <!-- TRANSFER PAGE -->
+    <section id="page-transfer" class="page">
+      <div class="mb-3">
+        <div class="text-lg font-semibold">Transfer & Kirim</div>
+        <div class="text-xs muted">Pilih metode lalu konfirmasi</div>
       </div>
 
-      <div class="payment-grid">
-        <div class="payment-item">
-          <div style="width:44px;height:44;border-radius:10px;background:rgba(255,255,255,0.03);display:flex;align-items:center;justify-content:center">PLN</div>
-          <div>
-            <div style="font-weight:600">PLN Token</div>
-            <div class="small muted">Bayar listrik</div>
+      <div class="grid grid-cols-1 gap-4">
+        <div class="card p-3">
+          <div class="font-medium mb-2">Kirim Sesama KantongPay</div>
+          <label class="text-xs muted">ID / No HP</label>
+          <input id="send-to" class="w-full p-2 rounded-lg border border-slate-200 mb-2" placeholder="kp:username atau 0812xx" />
+          <label class="text-xs muted">Jumlah (IDR)</label>
+          <input id="send-amount" type="number" class="w-full p-2 rounded-lg border border-slate-200 mb-3" placeholder="100000" />
+          <div class="flex gap-2">
+            <button id="send-next" class="flex-1 py-2 rounded-lg btn-brand text-white">Lanjut (PIN)</button>
+            <button id="send-cancel" class="flex-1 py-2 rounded-lg bg-white border border-slate-200 text-[var(--brand)]">Batal</button>
           </div>
         </div>
 
-        <div class="payment-item">
-          <div style="width:44px;height:44;border-radius:10px;background:rgba(255,255,255,0.03);display:flex;align-items:center;justify-content:center">BPJS</div>
-          <div>
-            <div style="font-weight:600">BPJS</div>
-            <div class="small muted">Cicilan & tagihan</div>
+        <div class="card p-3">
+          <div class="font-medium mb-2">Transfer Bank (Populer)</div>
+          <label class="text-xs muted">Bank</label>
+          <select id="bank-select" class="w-full p-2 rounded-lg border border-slate-200 mb-2">
+            <option value="">-- Pilih bank --</option>
+            <option>BCA</option><option>Mandiri</option><option>BNI</option><option>BRI</option><option>CIMB</option><option>SeaBank</option><option>BTN</option><option>Permata</option>
+          </select>
+          <label class="text-xs muted">No. Rekening</label>
+          <input id="bank-account" class="w-full p-2 rounded-lg border border-slate-200 mb-2" placeholder="1234567890" />
+          <label class="text-xs muted">Nama Penerima</label>
+          <input id="bank-recipient" class="w-full p-2 rounded-lg border border-slate-200 mb-2" placeholder="Nama penerima" />
+          <label class="text-xs muted">Jumlah (IDR)</label>
+          <input id="bank-amount" type="number" class="w-full p-2 rounded-lg border border-slate-200 mb-3" placeholder="100000" />
+          <div class="flex gap-2">
+            <button id="bank-next" class="flex-1 py-2 rounded-lg btn-brand text-white">Lanjut (Konfirmasi)</button>
+            <button id="bank-cancel" class="flex-1 py-2 rounded-lg bg-white border border-slate-200 text-[var(--brand)]">Batal</button>
           </div>
         </div>
       </div>
-    </div>
+    </section>
 
-    <!-- Floating QR button -->
-    <div class="floating-qr">
-      <button class="qr-btn" onclick="goPage('qrPage')">📷 QR</button>
-    </div>
+    <!-- QRIS PAGE -->
+    <section id="page-qris" class="page">
+      <div class="mb-3">
+        <div class="text-lg font-semibold">QRIS</div>
+        <div class="text-xs muted">Generate QR & scan</div>
+      </div>
+
+      <div class="grid grid-cols-1 gap-4">
+        <div class="card p-3 items-center text-center">
+          <div class="font-medium mb-2">QR Pribadi</div>
+          <canvas id="qrcode-canvas" width="200" height="200" class="mb-3" style="background:white;border-radius:8px;"></canvas>
+          <div id="qrs-info" class="text-xs muted mb-2"></div>
+          <div class="flex gap-2">
+            <button id="qrs-regen" class="px-3 py-2 rounded-lg btn-brand text-white">Regenerate</button>
+            <button id="qrs-download" class="px-3 py-2 rounded-lg bg-white border border-slate-200 text-[var(--brand)]">Download</button>
+          </div>
+        </div>
+
+        <div class="card p-3">
+          <div class="font-medium mb-2">Scan / Paste QR </div>
+          <div class="text-xs muted mb-2">QR</div>
+          <textarea id="qrs-scan-input" rows="4" class="w-full p-2 rounded-lg border border-slate-200 mb-2" placeholder='{"id":"kp-...","name":"}'></textarea>
+          <label class="text-xs muted">Jumlah (IDR)</label>
+          <input id="qrs-scan-amount" type="number" class="w-full p-2 rounded-lg border border-slate-200 mb-3" placeholder="100000" />
+          <div class="flex gap-2">
+            <button id="qrs-pay" class="flex-1 py-2 rounded-lg btn-brand text-white">Bayar (PIN)</button>
+            <button id="qrs-clear" class="flex-1 py-2 rounded-lg bg-white border border-slate-200 text-[var(--brand)]">Batal</button>
+          </div>
+          <div id="qrs-preview" class="text-xs muted mt-2"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- HISTORY PAGE -->
+    <section id="page-history" class="page">
+      <div class="mb-3">
+        <div class="text-lg font-semibold">Riwayat Transaksi</div>
+        <div class="text-xs muted">Semua transaksi tersimpan lokal</div>
+      </div>
+
+      <div class="card p-3">
+        <ul id="history-list" class="space-y-2 text-sm muted"></ul>
+        <div class="mt-3 flex gap-2">
+          <button id="export-csv" class="flex-1 py-2 rounded-lg bg-white border border-slate-200 text-[var(--brand)]">Export CSV</button>
+          <button id="reset-data" class="flex-1 py-2 rounded-lg bg-white border border-slate-200 text-rose-600">Reset</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- PROFILE PAGE -->
+    <section id="page-profile" class="page">
+      <div class="card p-3">
+        <div class="mb-3">
+          <div class="text-lg font-semibold" id="profile-name">User</div>
+          <div class="text-xs muted" id="profile-email">email</div>
+          <div class="text-xs muted mt-2" id="profile-acct">Rek: -</div>
+        </div>
+        <div class="text-sm muted mb-2">Pengaturan & info akun</div>
+        <div class="grid grid-cols-1 gap-2 mt-2">
+          <button id="change-pin" class="py-2 rounded-lg bg-white border border-slate-200 text-[var(--brand)]">Ganti PIN</button>
+          <button id="logout" class="py-2 rounded-lg bg-white border border-slate-200 text-rose-600">Logout</button>
+        </div>
+      </div>
+    </section>
 
   </div>
 
-  <!-- TOP UP PAGE -->
-  <div id="topupPage" class="hidden">
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-      <button class="seeall" onclick="goPage('dashboard')">⬅</button>
-      <div style="font-weight:600">Top Up Saldo</div>
-    </div>
-    <div class="panel">
-      <input id="topupAmount" placeholder="Masukkan jumlah (contoh: 10000)" type="number">
-      <button class="input-btn" style="margin-top:12px" onclick="topup()">Kirim</button>
+  <!-- MODALS (blur) -->
+  <div id="modal-back" class="modal-back"></div>
+
+  <!-- PIN modal -->
+  <div id="pin-back" class="modal-back" style="display:none;">
+    <div class="modal">
+      <div class="flex items-center justify-between mb-2">
+        <div id="pin-modal-title" class="font-semibold">Masukkan PIN</div>
+        <button id="pin-close" class="text-slate-500">&times;</button>
+      </div>
+      <div id="pin-modal-desc" class="text-xs muted mb-2">Masukkan PIN 6 digit untuk konfirmasi.</div>
+      <input id="pin-input" type="password" maxlength="6" inputmode="numeric" class="w-full p-2 rounded-lg border border-slate-200 pin-input mb-3" placeholder="••••••" />
+      <div class="flex gap-2">
+        <button id="pin-submit" class="flex-1 py-2 rounded-lg btn-brand text-white">Submit</button>
+        <button id="pin-cancel" class="flex-1 py-2 rounded-lg bg-white border border-slate-200 text-[var(--brand)]">Batal</button>
+      </div>
     </div>
   </div>
 
-  <!-- TRANSFER PAGE -->
-  <div id="transferPage" class="hidden">
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-      <button class="seeall" onclick="goPage('dashboard')">⬅</button>
-      <div style="font-weight:600">Transfer</div>
-    </div>
-    <div class="panel">
-      <select id="bankTujuan">
-        <option value="">Pilih Bank / E-Wallet</option>
-        <option value="BCA">Bank BCA</option>
-        <option value="Mandiri">Mandiri</option>
-        <option value="Seabank">SeaBank</option>
-        <option value="GoPay">GoPay</option>
-        <option value="OVO">OVO</option>
-        <option value="DANA">DANA</option>
-        <option value="ShopeePay">ShopeePay</option>
-      </select>
-      <input id="nomorRekening" placeholder="Nomor rekening / HP" oninput="cekPenerima()" />
-      <div id="namaOtomatis" class="hidden" style="margin-top:8px;padding:8px;border-radius:8px;background:rgba(0,255,136,0.06);color:#b9f7d2"></div>
-      <input id="transferAmount" placeholder="Nominal transfer" type="number" />
-      <button class="input-btn" style="margin-top:8px" onclick="transfer()">Kirim</button>
+  <!-- TOAST area -->
+  <div id="toast" class="fixed right-4 bottom-28 space-y-2 z-50"></div>
+
+  <!-- Bottom nav -->
+  <div class="bottom-nav">
+    <div class="nav-card">
+      <button id="nav-home" class="nav-btn" title="Home"><ph-icon name="house" class="text-[var(--brand)]" style="font-size:20px"></ph-icon><div class="text-xs muted">Home</div></button>
+      <button id="nav-transfer" class="nav-btn" title="Transfer"><ph-icon name="currency-circle-dollar" class="text-[var(--brand)]" style="font-size:20px"></ph-icon><div class="text-xs muted">Transfer</div></button>
+      <button id="nav-qris-btn" class="nav-btn" title="QRIS"><ph-icon name="qrcode" class="text-[var(--brand)]" style="font-size:20px"></ph-icon><div class="text-xs muted">QRIS</div></button>
+      <button id="nav-history" class="nav-btn" title="History"><ph-icon name="list-check" class="text-[var(--brand)]" style="font-size:20px"></ph-icon><div class="text-xs muted">Riwayat</div></button>
+      <button id="nav-profile" class="nav-btn" title="Profile"><ph-icon name="user-circle" class="text-[var(--brand)]" style="font-size:20px"></ph-icon><div class="text-xs muted">Profil</div></button>
     </div>
   </div>
-
-  <!-- HISTORY PAGE -->
-  <div id="historyPage" class="hidden">
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-      <button class="seeall" onclick="goPage('dashboard')">⬅</button>
-      <div style="font-weight:600">Riwayat Transaksi</div>
-    </div>
-    <div class="panel" id="output"></div>
-  </div>
-
-  <!-- QR PAGE -->
-  <div id="qrPage" class="hidden">
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-      <button class="seeall" onclick="goPage('dashboard')">⬅</button>
-      <div style="font-weight:600">QR Payment</div>
-    </div>
-    <div class="panel" style="text-align:center">
-      <img src="https://api.qrserver.com/v1/create-qr-code/?data=WlynPay%20Payment&size=200x200" alt="QR" style="width:200px;height:200px;border-radius:8px">
-      <div class="small muted" style="margin-top:10px">Tunjukkan QR untuk pembayaran</div>
-    </div>
-  </div>
-
-</div>
 
 <script>
-  // initial state
-  let saldo = 140463; // angka awal, menyesuaikan dengan foto
-  let transaksi = [];
-  const user = { username: "wilyan", password: "1234" };
+/* Utilities & storage */
+const $ = id=>document.getElementById(id);
+const adminFee = Number(getComputedStyle(document.documentElement).getPropertyValue('--admin-fee'))||2500;
 
-  // daftar penerima simulasi
-  const daftarPenerima = [
-    { bank: "BCA", nomor: "08123456789", nama: "Anggi" , avatar: null },
-    { bank: "BCA", nomor: "08199887766", nama: "M.solehudin", avatar: null },
-    { bank: "ShopeePay", nomor: "082211223344", nama: "Yusriyah", avatar: null },
-    { bank: "BCA", nomor: "08551234567", nama: "Pujianti", avatar: null },
-    { bank: "GoPay", nomor: "0822334455", nama: "Lia", avatar: null },
-    { bank: "DANA", nomor: "0818080808", nama: "Dimas", avatar: null }
-  ];
+function toast(msg,type='info',ms=3000){
+  const t=document.createElement('div');
+  t.className='p-2 rounded shadow-sm bg-white';
+  t.style.borderLeft = type==='success' ? '4px solid #16a34a' : (type==='error' ? '4px solid #ef4444' : '4px solid var(--brand)');
+  t.innerHTML=`<div class="text-sm">${msg}</div>`;
+  $('toast').appendChild(t);
+  setTimeout(()=> t.remove(), ms);
+}
 
-  // create contacts in "Kirim & Terima" to match the photo-like layout
-  function renderContacts(){
-    const container = document.getElementById('contactsList');
-    container.innerHTML = '';
-    // show first 5 popular
-    daftarPenerima.slice(0,5).forEach(d=>{
-      const wrap = document.createElement('div'); wrap.className='contact';
-      const circle = document.createElement('div'); circle.className='circle';
-      // initials
-      const initials = d.nama.split(' ').map(s=>s[0]).join('').slice(0,2).toUpperCase();
-      circle.textContent = initials;
-      // bank badge
-      const bbadge = document.createElement('div'); bbadge.className='bank-badge'; bbadge.textContent = d.bank==='BCA'?'BCA': d.bank==='GoPay'?'GP': d.bank==='DANA'?'DANA': d.bank;
-      circle.appendChild(bbadge);
-      const name = document.createElement('div'); name.className='name'; name.textContent = d.nama;
-      circle.onclick = ()=>{ document.getElementById('bankTujuan').value = d.bank; document.getElementById('nomorRekening').value = d.nomor; cekPenerima(); goPage('transferPage'); };
-      wrap.appendChild(circle);
-      wrap.appendChild(name);
-      container.appendChild(wrap);
+function fmt(n){ return 'Rp '+Number(n).toLocaleString('id-ID'); }
+
+function getUser(){ try{ return JSON.parse(localStorage.getItem('kp_user')||'null'); }catch{ return null; } }
+function setUser(u){ localStorage.setItem('kp_user', JSON.stringify(u)); }
+function getTx(){ try{ return JSON.parse(localStorage.getItem('kp_tx')||'[]'); }catch{return []; } }
+function setTx(a){ localStorage.setItem('kp_tx', JSON.stringify(a)); }
+
+/* Auto account number generator */
+function genAccount(){
+  // prefix 8801 + 5 random digits
+  const rand = Math.floor(Math.random()*90000)+10000;
+  return '8801' + rand.toString();
+}
+
+/* Seed demo if none */
+(function seed(){
+  if (!getUser()){
+    setUser({ name:'Alya Zahra', email:'demo@kantongpay.test', password:'123456', pin:'123456', balance:1250000, id:'kp-'+Date.now().toString().slice(-6), account: genAccount() });
+    setTx([
+      { id:1, title:'Top-up via Bank', amount:250000, type:'in', date:new Date(Date.now()-1000*60*60*24*5).toISOString() },
+      { id:2, title:'Gojek - Ride', amount:45000, type:'out', date:new Date(Date.now()-1000*60*60*24*2).toISOString() },
+      { id:3, title:'Transfer ke Rifky', amount:200000, type:'out', date:new Date(Date.now()-1000*60*60*24*1).toISOString() },
+    ]);
+  }
+})();
+
+/* Pages */
+const pages = {
+  login: $('page-login'), register: $('page-register'), dashboard: $('page-dashboard'),
+  transfer: $('page-transfer'), qris: $('page-qris'), history: $('page-history'), profile: $('page-profile')
+};
+function showPage(name){
+  Object.values(pages).forEach(p=>p.classList.remove('active'));
+  if (pages[name]) pages[name].classList.add('active');
+  // nav highlight
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  if (name==='dashboard') $('nav-home').classList.add('active');
+  if (name==='transfer') $('nav-transfer').classList.add('active');
+  if (name==='qris') $('nav-qris-btn').classList.add('active');
+  if (name==='history') $('nav-history').classList.add('active');
+  if (name==='profile') $('nav-profile').classList.add('active');
+
+  // render dynamic
+  if (name==='dashboard' || name==='profile') renderDashboard();
+  if (name==='history') renderHistory();
+  if (name==='qris') renderQR();
+}
+
+/* Navigation (icons -> immediate page change) */
+$('nav-home').onclick = ()=>goto('dashboard');
+$('nav-transfer').onclick = ()=>goto('transfer');
+$('nav-qris-btn').onclick = ()=>goto('qris');
+$('nav-history').onclick = ()=>goto('history');
+$('nav-profile').onclick = ()=>goto('profile');
+
+function goto(pageName){
+  if (!localStorage.getItem('kp_logged') && (pageName!=='login' && pageName!=='register')){
+    toast('Silakan login terlebih dahulu','error'); showPage('login'); return;
+  }
+  showPage(pageName);
+}
+
+/* Auth */
+$('btn-register').onclick = ()=>{
+  const name=$('reg-name').value.trim(), email=$('reg-email').value.trim(), pass=$('reg-pass').value.trim(), pin=$('reg-pin').value.trim();
+  if(!name||!email||pass.length<6){ toast('Isi nama,email,password (min6)','error'); return; }
+  if(!/^\d{6}$/.test(pin)){ toast('PIN harus 6 digit','error'); return; }
+  const id='kp-'+Date.now().toString().slice(-6);
+  const account=genAccount();
+  setUser({ name,email,password:pass,pin,balance:1250000,id,account });
+  toast('Akun dibuat. Silakan login','success');
+  $('reg-name').value=$('reg-email').value=$('reg-pass').value=$('reg-pin').value='';
+  setTimeout(()=> showPage('login'),600);
+};
+
+$('btn-login').onclick = ()=>{
+  const email=$('login-email').value.trim(), pass=$('login-pass').value.trim();
+  const user=getUser();
+  if(!user){ toast('Belum ada akun. Daftar dulu.','error'); return; }
+  if(email===user.email && pass===user.password){ localStorage.setItem('kp_logged','1'); toast('Login berhasil','success'); $('login-email').value=$('login-pass').value=''; setTimeout(()=> showPage('dashboard'),350); }
+  else toast('Email atau password salah','error');
+};
+
+$('goto-register').onclick = ()=> showPage('register');
+$('goto-login').onclick = ()=> showPage('login');
+
+$('logout').onclick = ()=>{ localStorage.removeItem('kp_logged'); toast('Logout berhasil','info'); showPage('login'); };
+
+/* Render dashboard & history */
+function renderDashboard(){
+  const user=getUser(); if(!user) return showPage('login');
+  $('hdr-welcome').textContent=`Hello, ${user.name}`;
+  $('hdr-balance').textContent=fmt(user.balance||0);
+  $('main-balance').textContent=fmt(user.balance||0);
+  $('acct-number').textContent=user.account || '-';
+  $('profile-name').textContent=user.name; $('profile-email').textContent=user.email; $('profile-acct').textContent='Rek: '+(user.account||'-');
+
+  const tx=getTx(); const list=$('tx-list');
+  if(!tx.length) list.innerHTML='<li class="text-xs muted">Belum ada transaksi</li>';
+  else list.innerHTML= tx.slice(0,10).map(t=>`<li class="flex justify-between items-start"><div><div class="font-medium text-slate-800">${t.title}</div><div class="text-xs muted mt-0.5">${(new Date(t.date)).toLocaleString()}</div></div><div class="${t.type==='out'?'text-rose-600':'text-emerald-600'} font-semibold">${t.type==='out'?'-':'+'}${fmt(t.amount)}</div></li>`).join('');
+}
+
+function renderHistory(){
+  const tx=getTx(); const list=$('history-list');
+  if(!tx.length) { list.innerHTML='<li class="text-xs muted">Belum ada transaksi</li>'; return; }
+  list.innerHTML= tx.map(t=>`<li class="flex justify-between items-start"><div><div class="font-medium text-slate-800">${t.title}</div><div class="text-xs muted mt-0.5">${(new Date(t.date)).toLocaleString()}</div></div><div class="${t.type==='out'?'text-rose-600':'text-emerald-600'} font-semibold">${t.type==='out'?'-':'+'}${fmt(t.amount)}</div></li>`).join('');
+}
+
+/* Top Up: open modal with options */
+$('open-topup').onclick = ()=> {
+  showModalHTML(`
+    <div class="text-sm">
+      <div class="font-medium mb-2">Top Up Saldo</div>
+      <div class="grid grid-cols-3 gap-2 mb-3">
+        <button id="tu-50" class="py-2 rounded-lg bg-white border border-slate-200">Rp50.000</button>
+        <button id="tu-100" class="py-2 rounded-lg bg-white border border-slate-200">Rp100.000</button>
+        <button id="tu-200" class="py-2 rounded-lg bg-white border border-slate-200">Rp200.000</button>
+      </div>
+      <label class="text-xs muted">Custom (IDR)</label>
+      <input id="tu-custom" type="number" class="w-full p-2 rounded-lg border border-slate-200 mb-3" placeholder="Masukkan nominal" />
+    </div>`, 'Lanjut (Konfirmasi)', ()=>{
+      // handle primary -> read selected/custom and show confirmation modal
+      const c = document.querySelector('#modal-back #tu-custom')?.value;
+      const sel50 = document.querySelector('#modal-back #tu-50')?.dataset;
+      // better: read values directly from modal DOM
+      const tu50 = document.querySelector('#modal-back #tu-50');
+      const tu100 = document.querySelector('#modal-back #tu-100');
+      const tu200 = document.querySelector('#modal-back #tu-200');
+      let amount = 0;
+      if (tu50 && tu50.classList.contains('selected')) amount = 50000;
+      if (tu100 && tu100.classList.contains('selected')) amount = 100000;
+      if (tu200 && tu200.classList.contains('selected')) amount = 200000;
+      const custom = Number(document.querySelector('#modal-back #tu-custom')?.value||0);
+      if (!amount && custom>0) amount = custom;
+      if (!amount || amount <= 0) { toast('Pilih atau masukkan nominal valid','error'); return; }
+      // confirmation modal
+      showModalHTML(`<div class="text-sm"><div><strong>Top Up:</strong> ${fmt(amount)}</div><div class="text-xs muted mt-1">Sumber: (Demo)</div></div>`, 'Konfirmasi Top Up', ()=>{
+        // execute top up
+        const user=getUser(); if(!user) return toast('Silakan login','error');
+        user.balance = (user.balance||0) + amount; setUser(user);
+        const tx=getTx(); tx.unshift({ id:Date.now(), title:`Top Up (Demo)`, amount, type:'in', date:new Date().toISOString() }); setTx(tx);
+        toast(`Top Up ${fmt(amount)} berhasil`,'success');
+        // close modal and refresh
+        closeModal(); renderDashboard();
+      });
+    }, { bindClicksForTopUp: true });
+};
+
+/* helper: show modal with custom HTML & primary action */
+function showModalHTML(html, primaryText, onPrimary, opts){
+  const mb = $('modal-back');
+  mb.innerHTML = `<div class="modal card p-3">${html}<div class="mt-3 flex gap-2"><button id="modal-primary" class="flex-1 py-2 rounded-lg btn-brand text-white">${primaryText}</button><button id="modal-cancel" class="flex-1 py-2 rounded-lg bg-white border border-slate-200 text-[var(--brand)]">Batal</button></div></div>`;
+  mb.classList.add('show');
+  // if special opt to wire quick-select buttons for topup
+  if (opts && opts.bindClicksForTopUp){
+    const selBtns = mb.querySelectorAll('#tu-50,#tu-100,#tu-200');
+    selBtns.forEach(b=>{
+      b.onclick = ()=> {
+        selBtns.forEach(x=>x.classList.remove('bg-[var(--brand)]','text-white','selected'));
+        b.classList.add('bg-[var(--brand)]','text-white','selected');
+        // make small visual: replace inline classes because tailwind classes used here may not apply via js; add style instead
+        selBtns.forEach(x=>{ x.style.background='white'; x.style.color=''; });
+        b.style.background='linear-gradient(90deg,var(--brand),var(--brand-2))';
+        b.style.color='white';
+      };
     });
   }
+  mb.querySelector('#modal-primary').onclick = ()=> { onPrimary && onPrimary(); };
+  mb.querySelector('#modal-cancel').onclick = ()=> { mb.classList.remove('show'); };
+  mb.onclick = e => { if (e.target === mb) mb.classList.remove('show'); };
+}
+function closeModal(){ $('modal-back').classList.remove('show'); }
 
-  function goPage(id){
-    // hide all direct children of .phone
-    document.querySelectorAll('.phone > div').forEach(e => e.classList.add('hidden'));
-    document.getElementById(id).classList.remove('hidden');
-    if(id === 'dashboard') updateSaldo();
-    if(id === 'historyPage') showHistory();
-    if(id === 'dashboard') renderContacts();
+/* Send Sesama */
+let pending = null;
+$('send-next').onclick = ()=>{
+  const to = $('send-to').value.trim(), amount = Number($('send-amount').value||0);
+  if (!to || amount<=0){ toast('Masukkan penerima & jumlah','error'); return; }
+  const user=getUser(); if(!user) return toast('Silakan login','error');
+  if ((user.balance||0) < amount) return toast('Saldo tidak cukup','error');
+  pending = { type:'send', payload:{ to, amount } };
+  showModalHTML(`<div class="text-sm"><div><strong>Penerima:</strong> ${to}</div><div><strong>Jumlah:</strong> ${fmt(amount)}</div></div>`, 'Masukkan PIN', ()=> openPin('Konfirmasi Kirim', `Kirim ${fmt(amount)} ke ${to}. Masukkan PIN.`));
+};
+$('send-cancel').onclick = ()=> { $('send-to').value=''; $('send-amount').value=''; };
+
+/* Transfer Bank */
+$('bank-next').onclick = ()=>{
+  const bank = $('bank-select').value, account = $('bank-account').value.trim(), recipient = $('bank-recipient').value.trim(), amount = Number($('bank-amount').value||0);
+  if (!bank){ toast('Pilih bank tujuan','error'); return; }
+  if (!account || !recipient || amount<=0){ toast('Isi semua data transfer','error'); return; }
+  const user=getUser(); if(!user) return toast('Silakan login','error');
+  const total = amount + adminFee;
+  if ((user.balance||0) < total) return toast('Saldo tidak cukup untuk biaya admin','error');
+
+  pending = { type:'transfer', payload:{ bank, account, recipient, amount, fee: adminFee, total } };
+  showModalHTML(`<div class="text-sm">
+    <div><strong>Bank:</strong> ${bank}</div>
+    <div><strong>No.Rek:</strong> ${account}</div>
+    <div><strong>Nama:</strong> ${recipient}</div>
+    <div><strong>Jumlah:</strong> ${fmt(amount)}</div>
+    <div><strong>Biaya Admin:</strong> ${fmt(adminFee)}</div>
+    <div class="mt-1 font-semibold"><strong>Total Didebit:</strong> ${fmt(total)}</div>
+  </div>`, 'Konfirmasi & Masukkan PIN', ()=> openPin('Konfirmasi Transfer', `Transfer ${fmt(amount)} + biaya ${fmt(adminFee)} = ${fmt(total)}. Masukkan PIN.`));
+};
+
+/* QRIS: generate & scan */
+function renderQR(){ const user=getUser(); if(!user) return; const payload=JSON.stringify({ id:user.id, name:user.name, email:user.email, account:user.account }); const canvas=$('qrcode-canvas'); new QRious({ element: canvas, value: payload, size:200, background:'#fff', foreground:'#000' }); $('qrs-info').textContent = `ID: ${user.id} • ${user.name}`; }
+$('qrs-regen').onclick = ()=> renderQR();
+$('qrs-download').onclick = ()=> { const a=document.createElement('a'); a.href=$('qrcode-canvas').toDataURL(); a.download='kantongpay_qr.png'; a.click(); };
+
+$('qrs-pay').onclick = ()=>{
+  const txt=$('qrs-scan-input').value.trim(), amount = Number($('qrs-scan-amount').value||0);
+  if(!txt) return toast('Paste QR string terlebih dahulu','error');
+  if(amount<=0) return toast('Masukkan jumlah','error');
+  let parsed; try{ parsed = JSON.parse(txt); }catch(e){ toast('QR tidak valid (bukan JSON)','error'); return; }
+  if(!parsed.id && !parsed.email) return toast('QR tidak berisi info penerima','error');
+  pending = { type:'qris', payload:{ recipientId: parsed.id||parsed.email, recipientName: parsed.name||parsed.email, amount } };
+  openPin('Konfirmasi Pembayaran QRIS', `Bayar ${fmt(amount)} ke ${pending.payload.recipientName}. Masukkan PIN.`);
+};
+$('qrs-clear').onclick = ()=> { $('qrs-scan-input').value=''; $('qrs-scan-amount').value=''; $('qrs-preview').textContent=''; };
+$('qrs-scan-input').addEventListener('input', e=>{ const v=e.target.value.trim(); if(!v){ $('qrs-preview').textContent=''; return; } try{ const p=JSON.parse(v); $('qrs-preview').textContent=`Preview: ${p.name||p.email||p.id}`; }catch{ $('qrs-preview').textContent='Preview: invalid JSON'; } });
+
+/* PIN modal & execute pending */
+function openPin(title, desc){
+  $('pin-modal-title').textContent = title||'Masukkan PIN';
+  $('pin-modal-desc').textContent = desc||'Masukkan PIN 6 digit untuk konfirmasi.';
+  $('pin-input').value='';
+  $('pin-back').style.display='flex';
+}
+function closePin(){ $('pin-back').style.display='none'; pending=null; }
+
+$('pin-close').onclick = closePin;
+$('pin-cancel').onclick = closePin;
+
+$('pin-submit').onclick = ()=>{
+  const entered=$('pin-input').value.trim(); const user=getUser();
+  if(!user){ toast('User tidak ditemukan','error'); closePin(); return; }
+  if(!/^\d{6}$/.test(entered)){ toast('PIN harus 6 digit','error'); return; }
+  if(entered!==user.pin){ toast('PIN salah','error'); return; }
+
+  if(!pending){ toast('Tidak ada aksi','error'); closePin(); return; }
+
+  if(pending.type==='send'){
+    const { to, amount } = pending.payload;
+    user.balance -= amount; setUser(user);
+    const tx=getTx(); tx.unshift({ id:Date.now(), title:`Transfer ke ${to} (KantongPay)`, amount, type:'out', date:new Date().toISOString() }); setTx(tx);
+    toast(`Berhasil kirim ${fmt(amount)} ke ${to}`,'success'); renderDashboard(); pending=null; closePin();
+  } else if(pending.type==='transfer'){
+    const p=pending.payload;
+    user.balance -= p.total; setUser(user);
+    const tx=getTx(); tx.unshift({ id:Date.now(), title:`Transfer Bank ${p.bank} ke ${p.recipient} (${p.account})`, amount:p.total, type:'out', date:new Date().toISOString() }); setTx(tx);
+    toast(`Transfer ${fmt(p.amount)} ke ${p.recipient} (${p.bank}) berhasil. Biaya ${fmt(p.fee)}`,'success'); renderDashboard(); pending=null; closePin();
+  } else if(pending.type==='qris'){
+    const p=pending.payload;
+    user.balance -= p.amount; setUser(user);
+    const tx=getTx(); tx.unshift({ id:Date.now(), title:`QRIS Payment to ${p.recipientName}`, amount:p.amount, type:'out', date:new Date().toISOString() }); setTx(tx);
+    toast(`Berhasil bayar ${fmt(p.amount)} ke ${p.recipientName}`,'success'); renderDashboard(); pending=null; closePin();
+  } else {
+    toast('Aksi tidak dikenal','error'); pending=null; closePin();
   }
+};
 
-  function login(){
-    const u = document.getElementById('username').value.trim();
-    const p = document.getElementById('password').value.trim();
-    if(u === user.username && p === user.password){
-      goPage('dashboard');
-    } else {
-      alert('Nama pengguna atau sandi salah!');
-    }
+/* Generic modal back close handled by showModalHTML above */
+$('modal-back').onclick = e=> { if (e.target === $('modal-back')) $('modal-back').classList.remove('show'); };
+
+/* Export CSV & Reset */
+$('export-csv').onclick = ()=>{
+  const tx=getTx(); if(!tx.length){ toast('Tidak ada transaksi','info'); return; }
+  const rows=[['Tanggal','Deskripsi','Jumlah','Tipe']]; tx.forEach(t=>rows.push([new Date(t.date).toLocaleString(), t.title, t.amount, t.type]));
+  const csv = rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob=new Blob([csv],{type:'text/csv'}); const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download='kantongpay_transactions.csv'; a.click(); URL.revokeObjectURL(url);
+};
+
+$('reset-data').onclick = ()=>{
+  if(!confirm('Reset semua data demo & logout?')) return;
+  localStorage.removeItem('kp_user'); localStorage.removeItem('kp_tx'); localStorage.removeItem('kp_logged');
+  toast('Data di-reset. Reload halaman.','info');
+};
+
+/* Wiring dashboard buttons that open pages */
+$('open-send').onclick = ()=> goto('transfer');
+$('open-transfer').onclick = ()=> goto('transfer');
+$('open-qris').onclick = ()=> goto('qris');
+
+/* initial UI based on login flag */
+if(localStorage.getItem('kp_logged')) goto('dashboard'); else showPage('login');
+
+/* render QR when qris page shown: we override goto to also render QR */
+const origGoto = goto;
+goto = function(name){ origGoto(name); if(name==='qris') renderQR(); if(name==='dashboard') renderDashboard(); if(name==='history') renderHistory(); };
+
+/* quick: focus enter -> login/register */
+document.addEventListener('keydown', e=>{
+  if(e.key==='Enter'){
+    const active = Object.keys(pages).find(k=>pages[k].classList.contains('active'));
+    if(active==='login') $('btn-login').click();
+    if(active==='register') $('btn-register').click();
   }
-
-  function updateSaldo(){
-    document.getElementById('saldo').innerText = saldo.toLocaleString('id-ID');
-    document.getElementById('coins').innerText = 18;
+  if(e.key==='Escape'){
+    document.querySelectorAll('.modal-back').forEach(m=>m.classList.remove('show'));
+    $('pin-back').style.display='none';
+    pending=null;
   }
+});
 
-  function topup(){
-    const amt = parseInt(document.getElementById('topupAmount').value);
-    if(isNaN(amt) || amt <= 0) return alert('Jumlah tidak valid!');
-    saldo += amt;
-    transaksi.push({type:'Top Up', desc:`Top Up Rp${amt.toLocaleString('id-ID')}`, time: new Date().toLocaleString()});
-    alert('Top up berhasil!');
-    document.getElementById('topupAmount').value = '';
-    goPage('dashboard');
-  }
+/* periodic re-render */
+setInterval(()=>{ if(localStorage.getItem('kp_logged')) renderDashboard(); }, 3000);
 
-  function cekPenerima(){
-    const bank = document.getElementById('bankTujuan').value;
-    const no = document.getElementById('nomorRekening').value.trim();
-    const info = document.getElementById('namaOtomatis');
-    if(!bank || !no){ info.classList.add('hidden'); return; }
-    const found = daftarPenerima.find(d => d.bank === bank && d.nomor === no);
-    if(found){
-      info.textContent = `Penerima: ${found.nama}`;
-      info.classList.remove('hidden');
-    } else {
-      info.textContent = 'Penerima tidak ditemukan';
-      info.classList.remove('hidden');
-    }
-  }
-
-  function transfer(){
-    const bank = document.getElementById('bankTujuan').value;
-    const no = document.getElementById('nomorRekening').value.trim();
-    const jumlah = parseInt(document.getElementById('transferAmount').value);
-    const data = daftarPenerima.find(d => d.bank === bank && d.nomor === no);
-
-    if(!bank || !no || isNaN(jumlah) || jumlah <= 0) return alert('Isi semua data dengan benar!');
-    if(jumlah > saldo) return alert('Saldo tidak cukup!');
-    if(!data) return alert('Nomor rekening / HP tidak ditemukan!');
-
-    saldo -= jumlah;
-    transaksi.push({type:'Transfer', desc:`Transfer ke ${data.nama} (${bank}) Rp${jumlah.toLocaleString('id-ID')}`, time: new Date().toLocaleString()});
-    alert(`Transfer ke ${data.nama} berhasil!`);
-    document.getElementById('nomorRekening').value = '';
-    document.getElementById('transferAmount').value = '';
-    document.getElementById('bankTujuan').value = '';
-    document.getElementById('namaOtomatis').classList.add('hidden');
-    goPage('dashboard');
-  }
-
-  function showHistory(){
-    const out = document.getElementById('output');
-    if(transaksi.length === 0){
-      out.innerHTML = '<p class="muted">Belum ada transaksi.</p>';
-      return;
-    }
-    out.innerHTML = transaksi.map(t => {
-      if(typeof t === 'string') return `<div class="transaksi" style="padding:10px;border-radius:8px;background:rgba(255,255,255,0.02);margin-bottom:8px">${t}</div>`;
-      return `<div style="padding:10px;border-radius:8px;background:rgba(255,255,255,0.02);margin-bottom:8px">
-                <div style="font-weight:600">${t.type}</div>
-                <div class="small muted">${t.desc}</div>
-                <div class="small muted" style="margin-top:6px">${t.time}</div>
-              </div>`;
-    }).join('');
-  }
-
-  // initial render
-  updateSaldo();
-  renderContacts();
-  // start at login page (default), but you can comment the next line to auto-login
-  // goPage('dashboard');
+/* expose for debug */
+window._kp = { getUser, getTx, setUser, setTx, fmt };
 
 </script>
 </body>
 </html>
+
