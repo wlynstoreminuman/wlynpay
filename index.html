@@ -643,11 +643,15 @@ setInterval(()=>{ if(localStorage.getItem('kp_logged')) renderDashboard(); }, 30
 window._kp = { getUser, getTx, setUser, setTx, fmt };
 
 <script>
-  // hapus semua riwayat transaksi tersimpan
-  localStorage.removeItem("history");
+  // cek apakah sudah pernah dihapus
+  if (!localStorage.getItem("historyCleared")) {
+    localStorage.removeItem("history"); // hapus hanya riwayat transaksi
+    localStorage.setItem("historyCleared", "true"); // tandai supaya tidak hapus terus
+  }
 </script>
 </body>
 </html>
+
 
 
 
