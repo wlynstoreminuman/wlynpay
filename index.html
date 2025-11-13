@@ -347,7 +347,7 @@ function genAccount(){
 /* Seed demo if none */
 (function seed(){
   if (!getUser()){
-    setUser({ name:'', email:'demo@kantongpay.test', password:'123456', pin:'123456', balance:1250000, id:'kp-'+Date.now().toString().slice(-6), account: genAccount() });
+    setUser({ name:'wilyan arta al majid', email:'demo@kantongpay.test', password:'123456', pin:'123456', balance:1250000, id:'kp-'+Date.now().toString().slice(-6), account: genAccount() });
     setTx([
       { id:1, title:'Top-up via Bank', amount:250000, type:'in', date:new Date(Date.now()-1000*60*60*24*5).toISOString() },
       { id:2, title:'', amount:45000, type:'out', date:new Date(Date.now()-1000*60*60*24*2).toISOString() },
@@ -644,6 +644,7 @@ window._kp = { getUser, getTx, setUser, setTx, fmt };
 </script>
 </body>
 </html>
+
 
 
 
