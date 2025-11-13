@@ -69,7 +69,7 @@
 
         <div class="space-y-3">
           <label class="text-xs muted">Email</label>
-          <input id="login-email" type="email" class="w-full p-3 rounded-lg border border-slate-200" placeholder="nama@contoh.com">
+          <input id="login-email" type="email" class="w-full p-3 rounded-lg border border-slate-200" placeholder="Masukan Email">
           <label class="text-xs muted">Password</label>
           <input id="login-pass" type="password" class="w-full p-3 rounded-lg border border-slate-200" placeholder="••••••">
           <button id="btn-login" class="w-full mt-2 py-3 rounded-lg btn-brand">Masuk</button>
@@ -91,11 +91,11 @@
           <label class="text-xs muted">Nama lengkap</label>
           <input id="reg-name" class="w-full p-3 rounded-lg border border-slate-200" placeholder="Nama Anda">
           <label class="text-xs muted">Email</label>
-          <input id="reg-email" type="email" class="w-full p-3 rounded-lg border border-slate-200" placeholder="nama@contoh.com">
+          <input id="reg-email" type="email" class="w-full p-3 rounded-lg border border-slate-200" placeholder="">
           <label class="text-xs muted">Password</label>
           <input id="reg-pass" type="password" class="w-full p-3 rounded-lg border border-slate-200" placeholder="Minimal 6 karakter">
           <label class="text-xs muted">PIN 6-digit</label>
-          <input id="reg-pin" type="password" inputmode="numeric" maxlength="6" class="w-full p-3 rounded-lg border border-slate-200 pin-input" placeholder="123456">
+          <input id="reg-pin" type="password" inputmode="numeric" maxlength="6" class="w-full p-3 rounded-lg border border-slate-200 pin-input" placeholder="">
           <button id="btn-register" class="w-full mt-2 py-3 rounded-lg border border-[var(--brand)] text-[var(--brand)]">Buat Akun</button>
         </div>
 
@@ -153,7 +153,7 @@
         <div class="card p-3">
           <div class="font-medium mb-2">Kirim Sesama KantongPay</div>
           <label class="text-xs muted">ID / No HP</label>
-          <input id="send-to" class="w-full p-2 rounded-lg border border-slate-200 mb-2" placeholder="kp:username atau 0812xx" />
+          <input id="send-to" class="w-full p-2 rounded-lg border border-slate-200 mb-2" placeholder="" />
           <label class="text-xs muted">Jumlah (IDR)</label>
           <input id="send-amount" type="number" class="w-full p-2 rounded-lg border border-slate-200 mb-3" placeholder="100000" />
           <div class="flex gap-2">
@@ -217,20 +217,50 @@
     </section>
 
     <!-- HISTORY PAGE -->
-    <section id="page-history" class="page">
-      <div class="mb-3">
-        <div class="text-lg font-semibold">Riwayat Transaksi</div>
-        <div class="text-xs muted">Semua transaksi tersimpan lokal</div>
-      </div>
+   <section id="page-history" class="page">
+  <div class="mb-3">
+    <div class="text-lg font-semibold">Riwayat Transaksi</div>
+    <div class="text-xs muted">Semua transaksi</div>
+  </div>
 
-      <div class="card p-3">
-        <ul id="history-list" class="space-y-2 text-sm muted"></ul>
-        <div class="mt-3 flex gap-2">
-          <button id="export-csv" class="flex-1 py-2 rounded-lg bg-white border border-slate-200 text-[var(--brand)]">Export CSV</button>
-          <button id="reset-data" class="flex-1 py-2 rounded-lg bg-white border border-slate-200 text-rose-600">Reset</button>
-        </div>
-      </div>
-    </section>
+  <div class="card p-3">
+    <ul id="history-list" class="space-y-2 text-sm muted"></ul>
+    <div class="mt-3 flex gap-2">
+      <button id="export-csv" class="flex-1 py-2 rounded-lg bg-white border border-slate-200 text-[var(--brand)]">Export CSV</button>
+      <button id="reset-data" class="flex-1 py-2 rounded-lg bg-white border border-slate-200 text-rose-600">Reset</button>
+    </div>
+  </div>
+</section>
+
+<script>
+  // contoh data transaksi (bisa diganti dengan data asli)
+  const transactions = []; // kosongkan untuk tes "Tidak ada transaksi"
+  const historyList = document.getElementById("history-list");
+
+  function renderHistory() {
+    historyList.innerHTML = ""; // bersihkan isi dulu
+
+    if (transactions.length === 0) {
+      historyList.innerHTML = '<li class="text-center text-slate-500 py-4">Tidak ada transaksi</li>';
+      return;
+    }
+
+    // kalau ada transaksi
+    transactions.forEach((t) => {
+      const li = document.createElement("li");
+      li.className = "flex justify-between items-center p-2 bg-slate-50 rounded-lg";
+      li.innerHTML = `
+        <span>${t.nama}</span>
+        <span class="font-semibold text-[var(--brand)]">${t.jumlah}</span>
+      `;
+      historyList.appendChild(li);
+    });
+  }
+
+  // Jalankan saat halaman dimuat
+  renderHistory();
+</script>
+
 
     <!-- PROFILE PAGE -->
     <section id="page-profile" class="page">
@@ -612,4 +642,5 @@ window._kp = { getUser, getTx, setUser, setTx, fmt };
 </script>
 </body>
 </html>
+
 
