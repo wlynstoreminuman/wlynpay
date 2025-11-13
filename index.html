@@ -204,7 +204,7 @@
         <div class="card p-3">
           <div class="font-medium mb-2">Scan / Paste QR </div>
           <div class="text-xs muted mb-2">QR</div>
-          <textarea id="qrs-scan-input" rows="4" class="w-full p-2 rounded-lg border border-slate-200 mb-2" placeholder='{":"}'></textarea>
+          <textarea id="qrs-scan-input" rows="4" class="w-full p-2 rounded-lg border border-slate-200 mb-2" placeholder='{"id":"kp-...","name":"}'></textarea>
           <label class="text-xs muted">Jumlah (IDR)</label>
           <input id="qrs-scan-amount" type="number" class="w-full p-2 rounded-lg border border-slate-200 mb-3" placeholder="100000" />
           <div class="flex gap-2">
@@ -345,16 +345,48 @@ function genAccount(){
 }
 
 /* Seed demo if none */
-(function seed(){
-  if (!getUser()){
-    setUser({ name:'wilyan arta al majid', email:'demo@kantongpay.test', password:'123456', pin:'123456', balance:1250000, id:'kp-'+Date.now().toString().slice(-6), account: genAccount() });
-    setTx([
-      { id:1, title:'Top-up via Bank', amount:250000, type:'in', date:new Date(Date.now()-1000*60*60*24*5).toISOString() },
-      { id:2, title:'', amount:45000, type:'out', date:new Date(Date.now()-1000*60*60*24*2).toISOString() },
-      { id:3, title:'', amount:200000, type:'out', date:new Date(Date.now()-1000*60*60*24*1).toISOString() },
-    ]);
+function goto(pageName) {
+  // 🧩 Mode demo — ubah ke false kalau ingin aktifkan login normal
+  const demoMode = true;
+
+  if (!demoMode) {
+    if (!localStorage.getItem("kp_logged") && (pageName !== "login" && pageName !== "register")) {
+      toast("Silakan login terlebih dahulu", "error");
+      showPage("login");
+      return;
+    }
   }
-})();
+
+  showPage(pageName);
+
+  // Tambahkan label "Demo Mode Aktif" di pojok bawah
+  if (demoMode) {
+    if (!document.getElementById("demo-mode-label")) {
+      const label = document.createElement("div");
+      label.id = "demo-mode-label";
+      label.textContent = "🧪 Demo Mode Aktif";
+      label.style.position = "fixed";
+      label.style.bottom = "14px";
+      label.style.right = "14px";
+      label.style.fontSize = "13px";
+      label.style.color = "#80d8ff"; // biru laut neon
+      label.style.background = "rgba(17, 25, 40, 0.6)";
+      label.style.padding = "6px 10px";
+      label.style.borderRadius = "10px";
+      label.style.backdropFilter = "blur(6px)";
+      label.style.boxShadow = "0 0 8px rgba(0, 200, 255, 0.4)";
+      label.style.opacity = "0";
+      label.style.transition = "opacity 1s ease-in-out";
+      document.body.appendChild(label);
+
+      // efek fade-in halus
+      setTimeout(() => {
+        label.style.opacity = "1";
+      }, 200);
+    }
+  }
+}
+
 
 /* Pages */
 const pages = {
@@ -641,13 +673,10 @@ setInterval(()=>{ if(localStorage.getItem('kp_logged')) renderDashboard(); }, 30
 
 /* expose for debug */
 window._kp = { getUser, getTx, setUser, setTx, fmt };
+
 </script>
 </body>
 </html>
-
-
-
-
 
 
 
